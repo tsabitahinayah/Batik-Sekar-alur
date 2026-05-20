@@ -39,7 +39,8 @@ Perancangan ulang ini mengusung pendekatan visual yang segar dengan karakteristi
 ## 💻 Teknologi yang Digunakan
 
 * **UI/UX Design:** Figma
-* **Frontend Base:** CSS, JavaScript, Next.js
+* **Frontend Base:** Next.js (React)
+* **Styling:** Tailwind CSS
 * **Deployment Platform:** [Vercel](https://vercel.com)
 
 ---
