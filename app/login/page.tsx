@@ -25,10 +25,10 @@ export default function LoginPage() {
 
     setIsLoading(true)
     
-    // Simulate authentication delay (remove or replace with actual API call)
+    // Simulate authentication delay
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Redirect to admin page
+    // Redirect to admin dashboard
     router.push("/admin")
   }
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-10 text-base"
+              className="w-full h-10 text-base bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
             >
               {isLoading ? "Memproses..." : "Login"}
             </Button>
