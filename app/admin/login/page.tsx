@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -28,7 +28,7 @@ export default function LoginPage() {
     // Simulate authentication delay (remove or replace with actual API call)
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Redirect to admin page
+    // Redirect to admin dashboard
     router.push("/admin")
   }
 

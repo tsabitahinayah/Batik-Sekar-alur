@@ -105,7 +105,7 @@ export function Navbar() {
             </button>
 
             <Link
-              href="/admin"
+              href="/admin/login"
               className="ml-4 rounded-lg bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Login
@@ -182,7 +182,7 @@ export function Navbar() {
               </div>
             ))}
             <Link
-              href="/admin"
+              href="/admin/login"
               onClick={() => setMobileMenuOpen(false)}
               className="mx-4 mt-4 block rounded-lg bg-primary px-6 py-4 text-center text-xl font-semibold text-primary-foreground"
             >
