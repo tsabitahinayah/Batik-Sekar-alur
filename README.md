@@ -43,4 +43,6 @@ Perancangan ulang ini mengusung pendekatan visual yang segar dengan karakteristi
 * **Styling:** Tailwind CSS
 * **Deployment Platform:** [Vercel](https://vercel.com)
 
+## Note : untuk login dapat mengisikan username (admin) dan password (password)
+
 ---
