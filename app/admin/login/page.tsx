@@ -6,30 +6,45 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/lib/auth-context"
+import { authenticateUser } from "@/lib/auth"
 import Image from "next/image"
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const { login } = useAuth()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
     
     // Validate inputs
     if (!username.trim() || !password.trim()) {
-      alert("Mohon masukkan username dan password")
+      setError("Mohon masukkan username dan password")
       return
     }
 
     setIsLoading(true)
     
-    // Simulate authentication delay (remove or replace with actual API call)
+    // Simulate authentication delay
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Redirect to admin dashboard
-    router.push("/admin")
+    // Authenticate user
+    const authenticatedUser = authenticateUser(username, password)
+    
+    if (authenticatedUser) {
+      login(authenticatedUser)
+      router.push("/admin")
+    } else {
+      setError("Username atau password salah")
+      setPassword("")
+    }
+
+    setIsLoading(false)
   }
 
   return (
@@ -55,6 +70,12 @@ export default function AdminLoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="username" className="text-base">
                 Username
@@ -93,6 +114,16 @@ export default function AdminLoginPage() {
               {isLoading ? "Memproses..." : "Login"}
             </Button>
           </form>
+
+          {/* Demo Credentials Display */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <p className="text-sm font-semibold text-foreground mb-3">Demo Credentials:</p>
+            <div className="text-xs space-y-2 text-muted-foreground">
+              <p><strong>Admin:</strong> admin / admin123</p>
+              <p><strong>Agen Statistik:</strong> agen_pleret / agen123</p>
+              <p><strong>Viewer:</strong> viewer / viewer123</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

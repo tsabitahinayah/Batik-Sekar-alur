@@ -47,10 +47,23 @@ export type NavItem = {
   children?: NavItem[]
 }
 
+export type UserRole = "Admin" | "Agen Statistik" | "Viewer"
+
 export interface User {
   id: string
   username: string
-  email: string
+  email?: string
   password?: string
-  role: "Admin" | "Agen Statistik"
+  role: UserRole
+  kalurahan?: Kalurahan
+  fullName?: string
+}
+
+export interface RolePermissions {
+  canCreate: boolean
+  canRead: boolean
+  canUpdate: boolean
+  canDelete: boolean
+  canManageUsers: boolean
+  dataAccess: "all" | "own" | "view-only"
 }

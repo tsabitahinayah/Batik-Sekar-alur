@@ -1,51 +1,122 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { activities, koordinasiData, pembinaanData, monevData } from "@/lib/data"
-import { FileText, Users, BarChart3, Calendar } from "lucide-react"
+import { FileText, Users, BarChart3, Calendar, Eye, Edit2, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
-
-const stats = [
-  {
-    title: "Total Kegiatan",
-    value: activities.length,
-    icon: FileText,
-    href: "/admin/kegiatan",
-    description: "Kegiatan terdokumentasi",
-  },
-  {
-    title: "Koordinasi",
-    value: koordinasiData.length,
-    icon: Users,
-    href: "/admin/koordinasi",
-    description: "Dengan kalurahan",
-  },
-  {
-    title: "Pembinaan",
-    value: pembinaanData.length,
-    icon: Calendar,
-    href: "/admin/pembinaan",
-    description: "Sesi pembinaan",
-  },
-  {
-    title: "Manajemen User",
-    value: 5,
-    icon: Users,
-    href: "/admin/users",
-    description: "Admin & Agen Statistik",
-  },
-]
-
-const recentActivities = activities.slice(0, 5)
+import { useAuth } from "@/lib/auth-context"
+import { Button } from "@/components/ui/button"
 
 export default function AdminDashboardPage() {
+  const { user, userRole, canAccess } = useAuth()
+
+  // Filter data based on user role and kalurahan
+  const filteredActivities = user?.kalurahan
+    ? activities.filter((a) => a.kalurahan === user.kalurahan)
+    : activities
+
+  const filteredKoordinasi = user?.kalurahan
+    ? koordinasiData.filter((k) => k.kalurahan === user.kalurahan)
+    : koordinasiData
+
+  const recentActivities = filteredActivities.slice(0, 5)
+
+  // Role-based stats
+  const getStats = () => {
+    const baseStats = [
+      {
+        title: "Total Kegiatan",
+        value: filteredActivities.length,
+        icon: FileText,
+        href: "/admin/kegiatan",
+        description:
+          user?.kalurahan
+            ? `Kegiatan ${user.kalurahan}`
+            : "Kegiatan terdokumentasi",
+        visible: true,
+      },
+      {
+        title: "Koordinasi",
+        value: filteredKoordinasi.length,
+        icon: Users,
+        href: "/admin/koordinasi",
+        description:
+          user?.kalurahan ? `Koordinasi ${user.kalurahan}` : "Dengan kalurahan",
+        visible: userRole !== "Viewer",
+      },
+      {
+        title: "Pembinaan",
+        value: pembinaanData.length,
+        icon: Calendar,
+        href: "/admin/pembinaan",
+        description: "Sesi pembinaan",
+        visible: userRole !== "Viewer",
+      },
+      {
+        title: "Manajemen User",
+        value: 5,
+        icon: Users,
+        href: "/admin/users",
+        description: "Admin & Agen Statistik",
+        visible: canAccess("canManageUsers"),
+      },
+    ]
+
+    return baseStats.filter((stat) => stat.visible)
+  }
+
+  const stats = getStats()
+
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Header with Role Info */}
       <div>
-        <h1 className="font-serif text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Selamat datang di panel admin Batik Sekar Alur
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="font-serif text-3xl font-bold text-foreground">
+              Dashboard
+            </h1>
+            <p className="mt-2 text-lg text-muted-foreground">
+              Selamat datang, {user?.fullName || user?.username}
+            </p>
+          </div>
+          <div className="bg-primary/10 rounded-lg px-4 py-2">
+            <p className="text-sm font-semibold text-primary">{userRole}</p>
+            {user?.kalurahan && (
+              <p className="text-xs text-muted-foreground">{user.kalurahan}</p>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Permission Info */}
+      {userRole === "Agen Statistik" && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex gap-3">
+            <Eye className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-blue-900">Akses Terbatas</p>
+              <p className="text-sm text-blue-800">
+                Anda dapat mengakses dan mengelola data untuk Kalurahan {user?.kalurahan} saja.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {userRole === "Viewer" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex gap-3">
+            <Eye className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-amber-900">Mode Baca Saja</p>
+              <p className="text-sm text-amber-800">
+                Anda memiliki akses read-only. Tidak dapat membuat, mengubah, atau menghapus data.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -59,8 +130,12 @@ export default function AdminDashboardPage() {
                     <span className="text-lg font-medium text-foreground">
                       {stat.title}
                     </span>
-                    <p className="font-serif text-4xl font-bold text-foreground mt-2">{stat.value}</p>
-                    <p className="text-muted-foreground mt-1 text-sm md:text-base">{stat.description}</p>
+                    <p className="font-serif text-4xl font-bold text-foreground mt-2">
+                      {stat.value}
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-sm md:text-base">
+                      {stat.description}
+                    </p>
                   </div>
                   <Icon className="h-6 w-6 text-primary shrink-0" />
                 </div>
@@ -70,77 +145,102 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
+      {/* Permissions Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif text-2xl">Izin Akses Anda</CardTitle>
+          <CardDescription className="text-lg">
+            Fitur dan tindakan yang tersedia untuk peran {userRole}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              {canAccess("canRead") ? (
+                <Eye className="h-5 w-5 text-green-600" />
+              ) : (
+                <Eye className="h-5 w-5 text-muted-foreground/50" />
+              )}
+              <span className="text-sm font-medium">Baca Data</span>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              {canAccess("canCreate") ? (
+                <Plus className="h-5 w-5 text-green-600" />
+              ) : (
+                <Plus className="h-5 w-5 text-muted-foreground/50" />
+              )}
+              <span className="text-sm font-medium">Buat Data</span>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              {canAccess("canUpdate") ? (
+                <Edit2 className="h-5 w-5 text-green-600" />
+              ) : (
+                <Edit2 className="h-5 w-5 text-muted-foreground/50" />
+              )}
+              <span className="text-sm font-medium">Edit Data</span>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              {canAccess("canDelete") ? (
+                <Trash2 className="h-5 w-5 text-green-600" />
+              ) : (
+                <Trash2 className="h-5 w-5 text-muted-foreground/50" />
+              )}
+              <span className="text-sm font-medium">Hapus Data</span>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              {canAccess("canManageUsers") ? (
+                <Users className="h-5 w-5 text-green-600" />
+              ) : (
+                <Users className="h-5 w-5 text-muted-foreground/50" />
+              )}
+              <span className="text-sm font-medium">Kelola User</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Recent Activities */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-serif text-2xl">Kegiatan Terbaru</CardTitle>
+          <CardTitle className="font-serif text-2xl">
+            {user?.kalurahan ? `Kegiatan Terbaru - ${user.kalurahan}` : "Kegiatan Terbaru"}
+          </CardTitle>
           <CardDescription className="text-lg">
             Dokumentasi kegiatan terbaru dari program Desa Cantik
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0"
-              >
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{activity.title}</h3>
-                  <p className="text-muted-foreground">
-                    {activity.date} - {activity.kalurahan}
-                  </p>
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0"
+                >
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">
+                      {activity.title}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {activity.date} - {activity.kalurahan}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-primary/20 px-3 py-1 text-sm font-medium text-foreground">
+                    {activity.category}
+                  </span>
                 </div>
-                <span className="rounded-full bg-primary/20 px-3 py-1 text-sm font-medium text-foreground">
-                  {activity.category}
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-muted-foreground text-center py-8">
+                Tidak ada kegiatan yang tersedia
+              </p>
+            )}
           </div>
-          <Link
-            href="/admin/kegiatan"
-            className="mt-6 inline-flex items-center justify-center w-full rounded-lg bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Lihat Semua Kegiatan
+          <Link href="/admin/kegiatan">
+            <Button variant="outline" className="w-full mt-6">
+              Lihat Semua Kegiatan
+            </Button>
           </Link>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-serif text-2xl">Aksi Cepat</CardTitle>
-          <CardDescription className="text-lg">
-            Kelola konten website dengan mudah
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Link
-              href="/admin/kegiatan/tambah"
-              className="flex items-center justify-center text-center rounded-lg bg-primary px-4 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors h-24 shadow-sm"
-            >
-              Tambah Kegiatan
-            </Link>
-            <Link
-              href="/admin/koordinasi/tambah"
-              className="flex items-center justify-center text-center rounded-lg bg-primary px-4 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors h-24 shadow-sm"
-            >
-              Tambah Koordinasi
-            </Link>
-            <Link
-              href="/admin/pembinaan/tambah"
-              className="flex items-center justify-center text-center rounded-lg bg-primary px-4 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors h-24 shadow-sm"
-            >
-              Tambah Pembinaan
-            </Link>
-            <Link
-              href="/admin/monev/tambah"
-              className="flex items-center justify-center text-center rounded-lg bg-primary px-4 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors h-24 shadow-sm"
-            >
-              Tambah Monev
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </div>
