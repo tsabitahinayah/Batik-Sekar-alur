@@ -6,9 +6,30 @@ import { FileText, Users, BarChart3, Calendar, Eye, Edit2, Plus, Trash2 } from "
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
 
 export default function AdminDashboardPage() {
-  const { user, userRole, canAccess } = useAuth()
+  const { user, userRole, canAccess, isHydrated } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Wait for hydration before rendering
+  useEffect(() => {
+    if (isHydrated) {
+      setIsLoading(false)
+    }
+  }, [isHydrated])
+
+  // Show loading while hydrating
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">Memuat dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Filter data based on user role and kalurahan
   const filteredActivities = user?.kalurahan

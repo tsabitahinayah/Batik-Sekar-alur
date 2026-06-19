@@ -18,6 +18,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   userRole: UserRole | null
   permissions: RolePermissions | null
+  isHydrated: boolean
   login: (user: AuthUser) => void
   logout: () => void
   canAccess: (requiredPermission: keyof RolePermissions) => boolean
@@ -30,19 +31,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [permissions, setPermissions] = useState<RolePermissions | null>(null)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('authUser')
-    if (storedUser) {
-      try {
+    try {
+      const storedUser = localStorage.getItem('authUser')
+      if (storedUser) {
         const parsedUser = JSON.parse(storedUser)
         setUser(parsedUser)
         setIsAuthenticated(true)
         setPermissions(getRolePermissions(parsedUser.role))
-      } catch {
-        localStorage.removeItem('authUser')
       }
+    } catch {
+      localStorage.removeItem('authUser')
+    } finally {
+      setIsHydrated(true)
     }
   }, [])
 
@@ -91,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         userRole: user?.role || null,
         permissions,
+        isHydrated,
         login,
         logout,
         canAccess,

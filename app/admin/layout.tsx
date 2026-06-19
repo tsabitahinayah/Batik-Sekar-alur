@@ -33,17 +33,21 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, logout, userRole, isAuthenticated } = useAuth()
+  const { user, logout, userRole, isAuthenticated, isHydrated } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Check authentication on mount
+  // Check authentication after hydration completes
   useEffect(() => {
+    if (!isHydrated) return // Wait for auth context to hydrate
+    
     setIsLoading(false)
+    
+    // Redirect to login if not authenticated and not already on login page
     if (!isAuthenticated && pathname !== "/admin/login") {
       router.push("/admin/login")
     }
-  }, [isAuthenticated, pathname, router])
+  }, [isHydrated, isAuthenticated, pathname, router])
 
   // Filter sidebar items based on user role
   const sidebarItems = allSidebarItems.filter(
